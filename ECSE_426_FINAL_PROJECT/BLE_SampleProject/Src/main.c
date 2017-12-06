@@ -81,7 +81,7 @@ GPIO_InitTypeDef txGPIO;
 UART_HandleTypeDef huart6;
 
 
-uint8_t rxBuffer[10] = {0};
+uint8_t rxBuffer[50] = {0};
 /** @defgroup MAIN_Private_Variables
  * @{
  */
@@ -264,15 +264,15 @@ int main(void)
 
 	while(1)
   {
-		HAL_UART_Transmit(&huart6,&sendV[index],1,50);
-		HAL_UART_Receive(&huart6,&recV,1,50);
-		rxBuffer[index] = recV;
-		index = (index+1)%5;
+		//HAL_UART_Transmit(&huart6,&sendV[index],1,50);
+		for(int i=0;i<50;i++){
+		HAL_UART_Receive(&huart6,&rxBuffer[i],1,50);
+		}
     HCI_Process();
     User_Process(&axes_data);
 		int16_t data;
-    data = 21000 + ((uint64_t)rand()*15)/RAND_MAX; //sensor emulation
-	  Audio_Data_Notify(data);
+    //data = 21000 + ((uint64_t)rand()*15)/RAND_MAX; //sensor emulation
+	  Audio_Data_Notify(rxBuffer);
 		HAL_Delay(2000);
   }
 }

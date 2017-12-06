@@ -381,11 +381,6 @@
           <GroupName>User Code</GroupName>
           <Files>
             <File>
-              <FileName>bluenrg_interface.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Src\bluenrg_interface.c</FilePath>
-            </File>
-            <File>
               <FileName>clock.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Src\clock.c</FilePath>
@@ -394,6 +389,11 @@
               <FileName>cube_hal_f4.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Src\cube_hal_f4.c</FilePath>
+            </File>
+            <File>
+              <FileName>bluenrg_interface.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Src\bluenrg_interface.c</FilePath>
             </File>
             <File>
               <FileName>stm32xx_it.c</FileName>

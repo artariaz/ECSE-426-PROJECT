@@ -127,7 +127,7 @@ void       GAP_DisconnectionComplete_CB(void);
 void       HCI_Event_CB(void *pckt);
 tBleStatus Temperature_Notify(uint16_t temp);
 tBleStatus Add_Audio_Service(void);
-tBleStatus Audio_Data_Notify(uint16_t data);
+tBleStatus Audio_Data_Notify(uint8_t* data);
 
 #if NEW_SERVICES
   tBleStatus Add_Time_Service(void);

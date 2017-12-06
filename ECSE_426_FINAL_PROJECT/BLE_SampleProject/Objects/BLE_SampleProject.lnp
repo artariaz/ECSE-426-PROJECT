@@ -1,7 +1,7 @@
 --cpu=Cortex-M4.fp
-".\objects\bluenrg_interface.o"
 ".\objects\clock.o"
 ".\objects\cube_hal_f4.o"
+".\objects\bluenrg_interface.o"
 ".\objects\stm32xx_it.o"
 ".\objects\main.o"
 ".\objects\sensor_service.o"
