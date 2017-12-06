@@ -151,17 +151,12 @@
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>vari</ItemText>
+          <ItemText>sendV</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>rxBuffer</ItemText>
-        </Ww>
-        <Ww>
-          <count>2</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>done</ItemText>
+          <ItemText>recV</ItemText>
         </Ww>
       </WatchWindow1>
       <Tracepoint>
