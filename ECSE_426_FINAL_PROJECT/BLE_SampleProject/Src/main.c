@@ -82,7 +82,6 @@ UART_HandleTypeDef huart6;
 
 
 uint8_t rxBuffer[10] = {0};
-int done = 0;
 /** @defgroup MAIN_Private_Variables
  * @{
  */
@@ -289,12 +288,16 @@ int main(void)
 
   /* Set output power level */
   ret = aci_hal_set_tx_power_level(1,4);
-	uint8_t sendV = 3;
+	uint8_t sendV[5] = {1,2,3,4,5};
 	uint8_t recV = 0;
-  HAL_UART_Transmit(&huart6,&sendV,1,50);
-	HAL_UART_Receive(&huart6,&recV,1,50);
+	int index = 0;
+
 	while(1)
   {
+		HAL_UART_Transmit(&huart6,&sendV[index],1,50);
+		HAL_UART_Receive(&huart6,&recV,1,50);
+		rxBuffer[index] = recV;
+		index = (index+1)%5;
     HCI_Process();
     User_Process(&axes_data);
 #if NEW_SERVICES
@@ -382,7 +385,7 @@ void UART_GPIO_Init(void)
 
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
-	done = 1;
+	
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
