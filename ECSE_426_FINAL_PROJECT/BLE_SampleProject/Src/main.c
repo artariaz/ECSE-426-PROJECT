@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    main.c 
+  * @file    main.c
   * @author  CL
   * @version V1.0.0
   * @date    04-July-2014
@@ -130,8 +130,8 @@ void UART_GPIO_Init(void);
  */
 int main(void)
 {
-  const char *name = "BlueNRG";
-  uint8_t SERVER_BDADDR[] = {0x12, 0x34, 0x00, 0xE1, 0x80, 0x03};
+  const char *name = "Tharsan";
+  uint8_t SERVER_BDADDR[] = {0x12, 0x34, 0x00, 0xE1, 0x45, 0x41};
   uint8_t bdaddr[BDADDR_SIZE];
   uint16_t service_handle, dev_name_char_handle, appearance_char_handle;
   
@@ -163,36 +163,36 @@ int main(void)
   
   /* Configure the User Button in GPIO Mode */
   BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_GPIO);
-  
+
   /* Configure the system clock */
 	/* SYSTEM CLOCK = 32 MHz */
   SystemClock_Config();
 
   /* Initialize the BlueNRG SPI driver */
   BNRG_SPI_Init();
-  
+
   /* Initialize the BlueNRG HCI */
   HCI_Init();
 
   /* Reset BlueNRG hardware */
   BlueNRG_RST();
-    
+
   /* get the BlueNRG HW and FW versions */
   getBlueNRGVersion(&hwVersion, &fwVersion);
 
-  /* 
+  /*
    * Reset BlueNRG again otherwise we won't
    * be able to change its MAC address.
    * aci_hal_write_config_data() must be the first
    * command after reset otherwise it will fail.
    */
   BlueNRG_RST();
-  
+
   PRINTF("HWver %d, FWver %d", hwVersion, fwVersion);
 	PRINTF("\n\n");
-  
+
   if (hwVersion > 0x30) { /* X-NUCLEO-IDB05A1 expansion board is used */
-    bnrg_expansion_board = IDB05A1; 
+    bnrg_expansion_board = IDB05A1;
     /*
      * Change the MAC address to avoid issues with Android cache:
      * if different boards have the same MAC address, Android
@@ -203,15 +203,15 @@ int main(void)
 
   /* The Nucleo board must be configured as SERVER */
   Osal_MemCpy(bdaddr, SERVER_BDADDR, sizeof(SERVER_BDADDR));
-  
+
   ret = aci_hal_write_config_data(CONFIG_DATA_PUBADDR_OFFSET,
                                   CONFIG_DATA_PUBADDR_LEN,
                                   bdaddr);
   if(ret){
     PRINTF("Setting BD_ADDR failed.\n");
   }
-  
-  ret = aci_gatt_init();    
+
+  ret = aci_gatt_init();
   if(ret){
     PRINTF("GATT_Init failed.\n");
   }
@@ -231,10 +231,10 @@ int main(void)
                                    strlen(name), (uint8_t *)name);
 
   if(ret){
-    PRINTF("aci_gatt_update_char_value failed.\n");            
+    PRINTF("aci_gatt_update_char_value failed.\n");
     while(1);
   }
-  
+
   ret = aci_gap_set_auth_requirement(MITM_PROTECTION_REQUIRED,
                                      OOB_AUTH_DATA_ABSENT,
                                      NULL,
@@ -246,45 +246,15 @@ int main(void)
   if (ret == BLE_STATUS_SUCCESS) {
     PRINTF("BLE Stack Initialized.\n");
   }
-  
+
   PRINTF("SERVER: BLE Stack Initialized\n");
-  
-  ret = Add_Acc_Service();
-  
+
+  ret = Add_Audio_Service();
+
   if(ret == BLE_STATUS_SUCCESS)
-    PRINTF("Acc service added successfully.\n");
-  else
-    PRINTF("Error while adding Acc service.\n");
-  
-  ret = Add_Environmental_Sensor_Service();
-  
-  if(ret == BLE_STATUS_SUCCESS)
-    PRINTF("Environmental Sensor service added successfully.\n");
+    PRINTF("Audio service added successfully.\n");
   else
     PRINTF("Error while adding Environmental Sensor service.\n");
-
-#if NEW_SERVICES
-  /* Instantiate Timer Service with two characteristics:
-   * - seconds characteristic (Readable only)
-   * - minutes characteristics (Readable and Notifiable )
-   */
-  ret = Add_Time_Service(); 
-  
-  if(ret == BLE_STATUS_SUCCESS)
-    PRINTF("Time service added successfully.\n");
-  else
-    PRINTF("Error while adding Time service.\n");  
-  
-  /* Instantiate LED Button Service with one characteristic:
-   * - LED characteristic (Readable and Writable)
-   */  
-  ret = Add_LED_Service();
-
-  if(ret == BLE_STATUS_SUCCESS)
-    PRINTF("LED service added successfully.\n");
-  else
-    PRINTF("Error while adding LED service.\n");  
-#endif
 
   /* Set output power level */
   ret = aci_hal_set_tx_power_level(1,4);
@@ -300,9 +270,10 @@ int main(void)
 		index = (index+1)%5;
     HCI_Process();
     User_Process(&axes_data);
-#if NEW_SERVICES
-    Update_Time_Characteristics();
-#endif
+		int16_t data;
+    data = 21000 + ((uint64_t)rand()*15)/RAND_MAX; //sensor emulation
+	  Audio_Data_Notify(data);
+		HAL_Delay(2000);
   }
 }
 
