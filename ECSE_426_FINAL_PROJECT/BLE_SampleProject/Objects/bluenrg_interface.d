@@ -30,6 +30,7 @@
 .\objects\bluenrg_interface.o: .\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pwr.h
 .\objects\bluenrg_interface.o: .\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pwr_ex.h
 .\objects\bluenrg_interface.o: .\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_spi.h
+.\objects\bluenrg_interface.o: .\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_uart.h
 .\objects\bluenrg_interface.o: .\Drivers\BSP\STM32F4xx-Nucleo\stm32f4xx_nucleo.h
 .\objects\bluenrg_interface.o: .\Drivers\BSP\STM32F4xx-Nucleo\stm32f4xx_nucleo_bluenrg.h
 .\objects\bluenrg_interface.o: .\BLE\STM32_BlueNRG\SimpleBlueNRG_HCI\includes\hal_types.h

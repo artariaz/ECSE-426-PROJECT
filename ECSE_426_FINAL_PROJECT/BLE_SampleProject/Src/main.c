@@ -52,6 +52,8 @@
 
 #include "stm32f4xx_hal_uart.h"
 #include "stm32f4xx_hal_gpio.h"
+
+
 /** @addtogroup X-CUBE-BLE1_Applications
  *  @{
  */
@@ -78,7 +80,11 @@
 GPIO_InitTypeDef rxGPIO;
 GPIO_InitTypeDef txGPIO;
 UART_HandleTypeDef huart6;
+DMA_HandleTypeDef hdma_usart6_rx;
+DMA_HandleTypeDef hdma_usart6_tx;
 
+uint8_t rxBuffer[10] = {0};
+int done = 0;
 /** @defgroup MAIN_Private_Variables
  * @{
  */
@@ -98,6 +104,8 @@ uint8_t bnrg_expansion_board = IDB04A1; /* at startup, suppose the X-NUCLEO-IDB0
 void User_Process(AxesRaw_t* p_axes);
 void UART_Init(void);
 void UART_GPIO_Init(void);
+void MX_DMA_Init(void);
+void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle);
 /**
  * @}
  */
@@ -149,8 +157,10 @@ int main(void)
   HAL_Init();
   
 	// UART initialization
-	UART_Init();
-	UART_GPIO_Init();
+	//UART_Init();
+	//UART_GPIO_Init();
+	MX_DMA_Init();
+	HAL_UART_MspInit(&huart6);
 	
 #if NEW_SERVICES
   /* Configure LED2 */
@@ -284,9 +294,12 @@ int main(void)
 
   /* Set output power level */
   ret = aci_hal_set_tx_power_level(1,4);
-
+	uint8_t vari[5];
   while(1)
   {
+		vari[0] = 1;
+		HAL_UART_Transmit_DMA(&huart6,vari,5);
+		HAL_UART_Receive_DMA(&huart6, rxBuffer, 10);
     HCI_Process();
     User_Process(&axes_data);
 #if NEW_SERVICES
@@ -353,8 +366,8 @@ void UART_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   
-  rxGPIO.Pin        = GPIO_PIN_10;
-  txGPIO.Pin       = GPIO_PIN_9;
+  rxGPIO.Pin        = GPIO_PIN_12;
+  txGPIO.Pin       = GPIO_PIN_11;
   
   rxGPIO.Mode       = GPIO_MODE_AF_PP;
   txGPIO.Mode      = GPIO_MODE_AF_PP;
@@ -365,11 +378,96 @@ void UART_GPIO_Init(void)
   rxGPIO.Speed      = GPIO_SPEED_FREQ_HIGH;
   txGPIO.Speed     = GPIO_SPEED_FREQ_HIGH;
   
-  rxGPIO.Alternate  = GPIO_AF7_USART2;
-  txGPIO.Alternate = GPIO_AF7_USART2;
+  rxGPIO.Alternate  = GPIO_AF8_USART6;
+  txGPIO.Alternate = GPIO_AF8_USART6;
   
   HAL_GPIO_Init(GPIOA, &rxGPIO);
   HAL_GPIO_Init(GPIOA, &txGPIO);
+}
+
+// DMA stuff
+void MX_DMA_Init(void) 
+{
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA2_Stream1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
+  /* DMA2_Stream6_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream6_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream6_IRQn);
+
+}
+
+void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
+{
+
+  GPIO_InitTypeDef GPIO_InitStruct;
+  if(uartHandle->Instance==USART6)
+  {
+  /* USER CODE BEGIN USART6_MspInit 0 */
+
+  /* USER CODE END USART6_MspInit 0 */
+    /* USART6 clock enable */
+    __HAL_RCC_USART6_CLK_ENABLE();
+  
+    /**USART6 GPIO Configuration    
+    PA11     ------> USART6_TX
+    PA12     ------> USART6_RX 
+    */
+    GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_12;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    /* USART6 DMA Init */
+    /* USART6_RX Init */
+    hdma_usart6_rx.Instance = DMA2_Stream1;
+    hdma_usart6_rx.Init.Channel = DMA_CHANNEL_5;
+    hdma_usart6_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_usart6_rx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_usart6_rx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_usart6_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_usart6_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_usart6_rx.Init.Mode = DMA_CIRCULAR;
+    hdma_usart6_rx.Init.Priority = DMA_PRIORITY_HIGH;
+    hdma_usart6_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+
+
+    __HAL_LINKDMA(uartHandle,hdmarx,hdma_usart6_rx);
+
+    /* USART6_TX Init */
+    hdma_usart6_tx.Instance = DMA2_Stream6;
+    hdma_usart6_tx.Init.Channel = DMA_CHANNEL_5;
+    hdma_usart6_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    hdma_usart6_tx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_usart6_tx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_usart6_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_usart6_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_usart6_tx.Init.Mode = DMA_NORMAL;
+    hdma_usart6_tx.Init.Priority = DMA_PRIORITY_HIGH;
+    hdma_usart6_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+
+
+    __HAL_LINKDMA(uartHandle,hdmatx,hdma_usart6_tx);
+
+  /* USER CODE BEGIN USART6_MspInit 1 */
+
+  /* USER CODE END USART6_MspInit 1 */
+  }
+}
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
+	done = 1;
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+
+	
 }
 
 

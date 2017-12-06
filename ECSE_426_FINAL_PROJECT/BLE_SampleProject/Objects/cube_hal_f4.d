@@ -29,5 +29,6 @@
 .\objects\cube_hal_f4.o: .\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pwr.h
 .\objects\cube_hal_f4.o: .\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pwr_ex.h
 .\objects\cube_hal_f4.o: .\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_spi.h
+.\objects\cube_hal_f4.o: .\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_uart.h
 .\objects\cube_hal_f4.o: .\Drivers\BSP\STM32F4xx-Nucleo\stm32f4xx_nucleo.h
 .\objects\cube_hal_f4.o: .\Drivers\BSP\STM32F4xx-Nucleo\stm32f4xx_nucleo_bluenrg.h

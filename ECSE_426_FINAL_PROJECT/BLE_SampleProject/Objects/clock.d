@@ -31,5 +31,6 @@
 .\objects\clock.o: .\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pwr.h
 .\objects\clock.o: .\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pwr_ex.h
 .\objects\clock.o: .\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_spi.h
+.\objects\clock.o: .\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_uart.h
 .\objects\clock.o: .\Drivers\BSP\STM32F4xx-Nucleo\stm32f4xx_nucleo.h
 .\objects\clock.o: .\Drivers\BSP\STM32F4xx-Nucleo\stm32f4xx_nucleo_bluenrg.h

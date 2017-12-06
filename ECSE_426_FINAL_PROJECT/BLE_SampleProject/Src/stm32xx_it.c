@@ -62,6 +62,8 @@ volatile uint8_t button_event = 0;
 /* SPI handler declared in "main.c" file */
 extern SPI_HandleTypeDef SpiHandle;
 /* Private function prototypes -----------------------------------------------*/
+extern DMA_HandleTypeDef hdma_usart6_rx;
+extern DMA_HandleTypeDef hdma_usart6_tx;
 /* Private functions ---------------------------------------------------------*/
 
 /******************************************************************************/
@@ -159,6 +161,18 @@ void PUSH_BUTTON_EXTI_IRQHandler(void)
   
   button_event = 1;
 }
+
+void DMA2_Stream6_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Stream6_IRQn 0 */
+
+  /* USER CODE END DMA2_Stream6_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart6_tx);
+  /* USER CODE BEGIN DMA2_Stream6_IRQn 1 */
+
+  /* USER CODE END DMA2_Stream6_IRQn 1 */
+}
+
 
 /******************************************************************************/
 /*                 STM32L0xx Peripherals Interrupt Handlers                   */

@@ -40,5 +40,6 @@
 .\objects\hci.o: .\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pwr.h
 .\objects\hci.o: .\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pwr_ex.h
 .\objects\hci.o: .\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_spi.h
+.\objects\hci.o: .\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_uart.h
 .\objects\hci.o: .\Drivers\BSP\STM32F4xx-Nucleo\stm32f4xx_nucleo.h
 .\objects\hci.o: .\Drivers\BSP\STM32F4xx-Nucleo\stm32f4xx_nucleo_bluenrg.h
