@@ -71,7 +71,7 @@
 /* Private defines -----------------------------------------------------------*/
 #define BDADDR_SIZE 6
 #define BUFFER_SIZE 40
-#define NUMBER_OF_TRANSFERS 80
+#define NUMBER_OF_TRANSFERS 600
 /**
  * @}
  */
@@ -269,21 +269,21 @@ int main(void)
 	
 
   User_Process(&axes_data);
+
 	Recording_Notify(&fileCompleted);
 	while(1)
   {
-			HCI_Process();	
+	
 		// Process started
 		fileCompleted = 0;
+		HCI_Process();	
 		Recording_Notify(&fileCompleted);
-		
+		HAL_Delay(2);
 		// While its not recording, check for the start transmission
 		while(!isRecording)
 		{
-		HCI_Process();	
-		Recording_Notify(&fileCompleted);
+		HAL_Delay(2);
 		while(status != HAL_OK){
-		HCI_Process();	
 		status = HAL_UART_Receive(&huart6,readChar,5,2000);//&rxBuffer[0],40,2000);
 		}
 		status = HAL_TIMEOUT;
@@ -296,26 +296,25 @@ int main(void)
 		// Recording
 			
 		fileCompleted = 1;
-		Recording_Notify(&fileCompleted);
 		HCI_Process();	
-
+		Recording_Notify(&fileCompleted);
+		HAL_Delay(2);
 		
 		// We need to transfer all the audio file now 
 		status = HAL_TIMEOUT;
 		for(int k=0;k<NUMBER_OF_TRANSFERS;k++)
-		{
-		HCI_Process();	
-		while(status != HAL_OK){
-		HCI_Process();	
+		{	
+		while(status != HAL_OK){	
 		status = HAL_UART_Receive(&huart6,&rxBuffer[0],40,2000);
 		}
 		status = HAL_TIMEOUT;
 		HCI_Process();
 		Audio_Data_Notify(rxBuffer);
-		HCI_Process();
+
 		HAL_Delay(5);
 		}
 		//File recorded
+
 		isRecording = 0;
 		readChar[0] = 0;
 		readChar[1] = 0;
@@ -323,12 +322,12 @@ int main(void)
 		readChar[3] = 0;
 		readChar[4] = 0;
 		fileCompleted = 2;
+		HCI_Process();	
 		Recording_Notify(&fileCompleted);
-		HCI_Process();
+		HAL_Delay(2);
 		HAL_Delay(2500);
   }
 }
-
 /**
  * @brief  Process user input (i.e. pressing the USER button on Nucleo board)
  *         and send the updated acceleration data to the remote client.
