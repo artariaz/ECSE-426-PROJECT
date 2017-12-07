@@ -78,6 +78,7 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 int IIR_CMSIS(float* InputArray, float* OutputArray, struct FIR_coeff* coeff, int Length);
+void PWR_StandbyMode(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -217,7 +218,7 @@ int main(void)
 			while(status != HAL_OK){
 				status = HAL_UART_Transmit(&huart3, &sendBuffer[0], SEND_BUF_SIZE, 2000);
 			}
-			HAL_Delay(10);
+			HAL_Delay(8);
 
 			status = HAL_TIMEOUT;
 		}	
@@ -290,6 +291,7 @@ int main(void)
 			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_SET);
 		}
 */			
+		PWR_StandbyMode();
 		}
 		
 
@@ -369,6 +371,23 @@ void SystemClock_Config(void)
 //	
 //	return 0;
 //}
+
+// sleep mode
+void PWR_StandbyMode(void)
+{
+  __HAL_RCC_PWR_CLK_ENABLE();
+
+  if(__HAL_PWR_GET_FLAG(PWR_FLAG_SB) != RESET)
+    __HAL_PWR_CLEAR_FLAG(PWR_FLAG_SB);
+
+  HAL_Delay(500);
+	//PWR_WAKEUP_PIN1
+  HAL_PWR_DisableWakeUpPin(PWR_WAKEUP_PIN1);
+  __HAL_PWR_CLEAR_FLAG(PWR_FLAG_WU);
+  HAL_PWR_EnableWakeUpPin(PWR_WAKEUP_PIN1);
+  HAL_PWR_EnterSTANDBYMode();
+}
+
 /* USER CODE END 4 */
 
 /**
