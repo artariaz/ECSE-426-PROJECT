@@ -163,7 +163,23 @@ const int BLE_CHAR_SIZE = 40;
      }
      return BLE_STATUS_SUCCESS;
  }
+ /**
+  * @brief  Send a notification for a change in audio data detection.
+  *
+  * @param  None
+  * @retval tBleStatus Status
+  */
+ tBleStatus Recording_Notify(uint8_t* data){
 
+     tBleStatus ret;
+
+     ret = aci_gatt_update_char_value(audioServHandle, recordingCharHandle, 0,1,data); 
+     if (ret != BLE_STATUS_SUCCESS) {
+         PRINTF("Error while updating TEMP characteristic.\n");
+         return BLE_STATUS_ERROR;
+     }
+     return BLE_STATUS_SUCCESS;
+ }
 /**
  * @brief  Update acceleration characteristic value.
  *

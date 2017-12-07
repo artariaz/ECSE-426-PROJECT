@@ -71,6 +71,7 @@
 /* Private defines -----------------------------------------------------------*/
 #define BDADDR_SIZE 6
 #define BUFFER_SIZE 40
+#define NUMBER_OF_TRANSFERS 80
 /**
  * @}
  */
@@ -259,29 +260,72 @@ int main(void)
 
   /* Set output power level */
   ret = aci_hal_set_tx_power_level(1,4);
-	uint8_t sendV[5] = {1,2,3,4,5};
-	uint8_t recV = 0;
-	int index = 0;
+
 	 
 	HAL_StatusTypeDef status = HAL_TIMEOUT;
-
+	uint8_t fileCompleted = 0;
+	uint8_t isRecording = 0;
+	uint8_t readChar[5] = {0};
 	
+
+  User_Process(&axes_data);
+	Recording_Notify(&fileCompleted);
 	while(1)
   {
-		//HAL_UART_Transmit(&huart6,&sendV[index],1,50);
+			HCI_Process();	
+		// Process started
+		fileCompleted = 0;
+		Recording_Notify(&fileCompleted);
+		
+		// While its not recording, check for the start transmission
+		while(!isRecording)
+		{
+		HCI_Process();	
+		Recording_Notify(&fileCompleted);
 		while(status != HAL_OK){
+		HCI_Process();	
+		status = HAL_UART_Receive(&huart6,readChar,5,2000);//&rxBuffer[0],40,2000);
+		}
+		status = HAL_TIMEOUT;
+		if(readChar[0] == 's' && readChar[1] == 't' && readChar[2] == 'a' && readChar[3] == 'r' && readChar[4] == 't')
+		{
+		// once the "start" string has been read, we now that we are recording.
+		isRecording = 1;
+		}
+ 		}
+		// Recording
+			
+		fileCompleted = 1;
+		Recording_Notify(&fileCompleted);
+		HCI_Process();	
+
+		
+		// We need to transfer all the audio file now 
+		status = HAL_TIMEOUT;
+		for(int k=0;k<NUMBER_OF_TRANSFERS;k++)
+		{
+		HCI_Process();	
+		while(status != HAL_OK){
+		HCI_Process();	
 		status = HAL_UART_Receive(&huart6,&rxBuffer[0],40,2000);
 		}
-	  //index = (index+1)%40;
 		status = HAL_TIMEOUT;
 		HCI_Process();
-    User_Process(&axes_data);
-		//int16_t data;
-    //data = 21000 + ((uint64_t)rand()*15)/RAND_MAX; //sensor emulation
-
 		Audio_Data_Notify(rxBuffer);
+		HCI_Process();
+		HAL_Delay(5);
+		}
+		//File recorded
+		isRecording = 0;
+		readChar[0] = 0;
+		readChar[1] = 0;
+		readChar[2] = 0;
+		readChar[3] = 0;
+		readChar[4] = 0;
+		fileCompleted = 2;
+		Recording_Notify(&fileCompleted);
+		HCI_Process();
 		HAL_Delay(2500);
-		
   }
 }
 
