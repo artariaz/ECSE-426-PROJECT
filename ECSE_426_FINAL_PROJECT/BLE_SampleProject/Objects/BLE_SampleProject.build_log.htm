@@ -27,22 +27,23 @@ Project File Date:  12/06/2017
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 5 (build 528)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'Application'
+compiling stm32xx_it.c...
 compiling sensor_service.c...
 Src\sensor_service.c(136): warning:  #550-D: variable "val"  was set but never used
        uint8_t val;
-Src\sensor_service.c(176): warning:  #550-D: variable "buff"  was set but never used
+Src\sensor_service.c(181): warning:  #550-D: variable "buff"  was set but never used
       uint8_t buff[6];
-Src\sensor_service.c(194): warning:  #177-D: variable "uuid16"  was declared but never referenced
+Src\sensor_service.c(199): warning:  #177-D: variable "uuid16"  was declared but never referenced
       uint16_t uuid16;
-Src\sensor_service.c(195): warning:  #177-D: variable "charFormat"  was declared but never referenced
+Src\sensor_service.c(200): warning:  #177-D: variable "charFormat"  was declared but never referenced
       charactFormat charFormat;
-Src\sensor_service.c(196): warning:  #177-D: variable "descHandle"  was declared but never referenced
+Src\sensor_service.c(201): warning:  #177-D: variable "descHandle"  was declared but never referenced
       uint16_t descHandle;
-Src\sensor_service.c(521): warning:  #167-D: argument of type "int16_t" is incompatible with parameter of type "uint8_t *"
+Src\sensor_service.c(526): warning:  #167-D: argument of type "int16_t" is incompatible with parameter of type "uint8_t *"
         Audio_Data_Notify(data);
 Src\sensor_service.c: 6 warnings, 0 errors
 linking...
-Program Size: Code=15920 RO-data=648 RW-data=108 ZI-data=3068  
+Program Size: Code=15924 RO-data=648 RW-data=108 ZI-data=3100  
 ".\Objects\BLE_SampleProject.axf" - 0 Error(s), 6 Warning(s).
 
 <h2>Software Packages used:</h2>
@@ -66,7 +67,7 @@ Package Vendor: Keil
 
    * Component: Keil.ARM Compiler::Compiler:I/O:STDOUT:ITM:1.1.0
       Source file:   Source\retarget_io.c
-Build Time Elapsed:  00:00:02
+Build Time Elapsed:  00:00:03
 </pre>
 </body>
 </html>

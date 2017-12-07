@@ -112,7 +112,7 @@ extern uint8_t bnrg_expansion_board;
   #define COPY_HUMIDITY_CHAR_UUID(uuid_struct)     COPY_UUID_128(uuid_struct,0x01,0xc5,0x0b,0x60, 0xe4,0x8c, 0x11,0xe2, 0xa0,0x73, 0x00,0x02,0xa5,0xd5,0xc5,0x1b)
 #endif
 
-const int BLE_CHAR_SIZE = 50;
+const int BLE_CHAR_SIZE = 40;
 
 /* Store Value into a buffer in Little Endian Format */
 #define STORE_LE_16(buf, val)    ( ((buf)[0] =  (uint8_t) (val)    ), \
@@ -156,7 +156,7 @@ const int BLE_CHAR_SIZE = 50;
 
      tBleStatus ret;
 
-     ret = aci_gatt_update_char_value(audioServHandle, audioDataCharHandle, 0, BLE_CHAR_SIZE,data);
+     ret = aci_gatt_update_char_value(audioServHandle, audioDataCharHandle, 0,BLE_CHAR_SIZE,data); //BLE_CHAR_SIZE,);
      if (ret != BLE_STATUS_SUCCESS) {
          PRINTF("Error while updating TEMP characteristic.\n");
          return BLE_STATUS_ERROR;

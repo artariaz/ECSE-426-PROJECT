@@ -70,7 +70,7 @@
  */
 /* Private defines -----------------------------------------------------------*/
 #define BDADDR_SIZE 6
-
+#define BUFFER_SIZE 40
 /**
  * @}
  */
@@ -81,7 +81,8 @@ GPIO_InitTypeDef txGPIO;
 UART_HandleTypeDef huart6;
 
 
-uint8_t rxBuffer[50] = {0};
+uint8_t rxBuffer[BUFFER_SIZE] = {0};
+uint8_t Buffer[BUFFER_SIZE] = {0};
 /** @defgroup MAIN_Private_Variables
  * @{
  */
@@ -261,19 +262,26 @@ int main(void)
 	uint8_t sendV[5] = {1,2,3,4,5};
 	uint8_t recV = 0;
 	int index = 0;
+	 
+	HAL_StatusTypeDef status = HAL_TIMEOUT;
 
+	
 	while(1)
   {
 		//HAL_UART_Transmit(&huart6,&sendV[index],1,50);
-		for(int i=0;i<50;i++){
-		HAL_UART_Receive(&huart6,&rxBuffer[i],1,50);
+		while(status != HAL_OK){
+		status = HAL_UART_Receive(&huart6,&rxBuffer[0],40,2000);
 		}
-    HCI_Process();
+	  //index = (index+1)%40;
+		status = HAL_TIMEOUT;
+		HCI_Process();
     User_Process(&axes_data);
-		int16_t data;
+		//int16_t data;
     //data = 21000 + ((uint64_t)rand()*15)/RAND_MAX; //sensor emulation
-	  Audio_Data_Notify(rxBuffer);
-		HAL_Delay(2000);
+
+		Audio_Data_Notify(rxBuffer);
+		HAL_Delay(2500);
+		
   }
 }
 
