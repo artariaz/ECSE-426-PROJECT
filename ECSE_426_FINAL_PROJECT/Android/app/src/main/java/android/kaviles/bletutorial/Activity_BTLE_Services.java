@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,6 +18,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 public class Activity_BTLE_Services extends AppCompatActivity implements ExpandableListView.OnChildClickListener {
     private final static String TAG = Activity_BTLE_Services.class.getSimpleName();
@@ -38,6 +40,11 @@ public class Activity_BTLE_Services extends AppCompatActivity implements Expanda
 
     private String name;
     private String address;
+    private View coordinatorLayout;
+
+
+
+    public static Activity_BTLE_Services instance;
 
     private ServiceConnection mBTLE_ServiceConnection = new ServiceConnection() {
 
@@ -56,12 +63,6 @@ public class Activity_BTLE_Services extends AppCompatActivity implements Expanda
 
             mBTLE_Service.connect(address);
 
-            // Automatically connects to the device upon successful start-up initialization.
-//            mBTLeService.connect(mBTLeDeviceAddress);
-
-//            mBluetoothGatt = mBTLeService.getmBluetoothGatt();
-//            mGattUpdateReceiver.setBluetoothGatt(mBluetoothGatt);
-//            mGattUpdateReceiver.setBTLeService(mBTLeService);
         }
 
         @Override
@@ -97,18 +98,23 @@ public class Activity_BTLE_Services extends AppCompatActivity implements Expanda
 
         ((TextView) findViewById(R.id.tv_name)).setText(name + " Services");
         ((TextView) findViewById(R.id.tv_address)).setText(address);
+        instance = this;
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-
+        Activity_BTLE_Services tmp = this;
         mGattUpdateReceiver = new BroadcastReceiver_BTLE_GATT(this);
         registerReceiver(mGattUpdateReceiver, Utils.makeGattUpdateIntentFilter());
 
         mBTLE_Service_Intent = new Intent(this, Service_BTLE_GATT.class);
+
+        mBTLE_Service_Intent.putExtra("activity", "tmp");
         bindService(mBTLE_Service_Intent, mBTLE_ServiceConnection, Context.BIND_AUTO_CREATE);
         startService(mBTLE_Service_Intent);
+
+        coordinatorLayout = this.findViewById(android.R.id.content);
     }
 
     @Override
@@ -147,13 +153,13 @@ public class Activity_BTLE_Services extends AppCompatActivity implements Expanda
             dialog_btle_characteristic.setCharacteristic(characteristic);
 
             dialog_btle_characteristic.show(getFragmentManager(), "Dialog_BTLE_Characteristic");
-        } else if (Utils.hasReadProperty(characteristic.getProperties()) != 0) {
-            if (mBTLE_Service != null) {
-                mBTLE_Service.readCharacteristic(characteristic);
-            }
         } else if (Utils.hasNotifyProperty(characteristic.getProperties()) != 0) {
             if (mBTLE_Service != null) {
                 mBTLE_Service.setCharacteristicNotification(characteristic, true);
+            }
+        }else if (Utils.hasReadProperty(characteristic.getProperties()) != 0) {
+            if (mBTLE_Service != null) {
+                mBTLE_Service.readCharacteristic(characteristic);
             }
         }
 
@@ -161,7 +167,8 @@ public class Activity_BTLE_Services extends AppCompatActivity implements Expanda
     }
 
     public void updateServices() {
-
+        UUID audioDataUUID = UUID.fromString("b071ac21-3477-11e2-a9e3-0002a5d5c51b");
+        UUID recordingUUID = UUID.fromString("b071ac21-2477-11e2-82d0-0002a5d5c51b");
         if (mBTLE_Service != null) {
 
             services_ArrayList.clear();
@@ -180,6 +187,20 @@ public class Activity_BTLE_Services extends AppCompatActivity implements Expanda
                 for (BluetoothGattCharacteristic characteristic: characteristicsList) {
                     characteristics_HashMap.put(characteristic.getUuid().toString(), characteristic);
                     newCharacteristicsList.add(characteristic);
+                    if(audioDataUUID.equals(characteristic.getUuid())){
+                        if (mBTLE_Service != null) {
+                            mBTLE_Service.setCharacteristicNotification(characteristic, true);
+                            mBTLE_Service.setCharacteristicNotification(characteristic, true);
+
+
+                        }
+                    }
+                    if(recordingUUID.equals(characteristic.getUuid())){
+                        if (mBTLE_Service != null) {
+                            mBTLE_Service.setCharacteristicNotification(characteristic, true);
+                            mBTLE_Service.setCharacteristicNotification(characteristic, true);
+                        }
+                    }
                 }
 
                 characteristics_HashMapList.put(service.getUuid().toString(), newCharacteristicsList);

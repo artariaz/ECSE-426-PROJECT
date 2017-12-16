@@ -6,9 +6,7 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.os.Handler;
 
-/**
- * Created by Kelvin on 4/20/16.
- */
+
 public class Scanner_BTLE {
 
     private MainActivity ma;

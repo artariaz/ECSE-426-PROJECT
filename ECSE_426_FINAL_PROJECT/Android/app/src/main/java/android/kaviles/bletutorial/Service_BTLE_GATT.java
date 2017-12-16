@@ -41,9 +41,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
-/**
- * Created by Kelvin on 5/8/16.
- */
+
 public class Service_BTLE_GATT extends Service {
     /**
      * Service for managing connection and data communication with a GATT server hosted on a
@@ -168,7 +166,7 @@ public class Service_BTLE_GATT extends Service {
             }
 
         }
-
+        //Creates file in a local storage
         public void createFile(int state, byte[] array){
             if(state == Service_BTLE_GATT.STATE_STANDBY){
 
@@ -208,7 +206,7 @@ public class Service_BTLE_GATT extends Service {
             }
         }
 
-
+        //Creates the Wave file from 8 bits PCM file
         public void createNewWaveFile(){
             Snackbar.make(coordinatorLayout, "Create Wave File", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
@@ -237,7 +235,7 @@ public class Service_BTLE_GATT extends Service {
             }
         }
 
-
+        //Retrieves file from your android device
         private byte[] getByte(File f){
             byte fileContent[] = new byte[(int)f.length()];
             FileInputStream fin = null;
@@ -273,7 +271,7 @@ public class Service_BTLE_GATT extends Service {
         }
 
 
-
+        //Gets file name by removing the directory of the file
         public String getFileName(Uri uri) {
             String result = null;
             if (uri.getScheme().equals("content")) {
@@ -296,6 +294,7 @@ public class Service_BTLE_GATT extends Service {
             return result;
         }
 
+        //Add the Wave file header to the PCM file
         public void PCMtoFile(OutputStream os, byte[] data, int srate, int channel, int format) throws IOException {
             byte[] header = new byte[44];
 
@@ -351,7 +350,7 @@ public class Service_BTLE_GATT extends Service {
             os.close();
         }
 
-
+        //Upload file to Firebase
         public void uploadFile(){
             Snackbar.make(coordinatorLayout, "Uploading ...", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
@@ -387,11 +386,6 @@ public class Service_BTLE_GATT extends Service {
         }
 
 
-//        @Override
-//        public void onCharacteristicWrite(BluetoothGatt gatt,
-//                                          BluetoothGattCharacteristic characteristic, int status) {
-//
-//        }
     };
 
     private void broadcastUpdate(final String action) {
