@@ -82,9 +82,16 @@ GPIO_InitTypeDef txGPIO;
 UART_HandleTypeDef huart6;
 
 
+// Buffer storing receiving data
 uint8_t rxBuffer[BUFFER_SIZE] = {0};
-uint8_t Buffer[BUFFER_SIZE] = {0};
-/** @defgroup MAIN_Private_Variables
+
+// Finite state machine variables
+	HAL_StatusTypeDef status = HAL_TIMEOUT;
+	uint8_t state = 0;
+	uint8_t isRecording = 0;
+	uint8_t readChar[5] = {0};
+
+	/** @defgroup MAIN_Private_Variables
  * @{
  */
 /* Private variables ---------------------------------------------------------*/
@@ -103,6 +110,7 @@ uint8_t bnrg_expansion_board = IDB04A1; /* at startup, suppose the X-NUCLEO-IDB0
 void User_Process(AxesRaw_t* p_axes);
 void UART_Init(void);
 void UART_GPIO_Init(void);
+void finiteStateMachine(void);
 /**
  * @}
  */
@@ -261,23 +269,30 @@ int main(void)
   /* Set output power level */
   ret = aci_hal_set_tx_power_level(1,4);
 
-	 
-	HAL_StatusTypeDef status = HAL_TIMEOUT;
-	uint8_t fileCompleted = 0;
-	uint8_t isRecording = 0;
-	uint8_t readChar[5] = {0};
-	
-
   User_Process(&axes_data);
 
-	Recording_Notify(&fileCompleted);
+	Recording_Notify(&state);
 	while(1)
   {
-	
-		// Process started
-		fileCompleted = 0;
+	finiteStateMachine();
+  }
+}
+
+/**
+ * @brief  Finite State Machine for receiving data from Discovery board and transfering to Android device
+ *
+ * @param  None
+ * @retval None
+ */
+void finiteStateMachine(void){
+	  
+		/*
+		 * STATE = 0 -- WAITING FOR 'start' signal from Discovery Board
+		 */
+		
+		state = 0;
 		HCI_Process();	
-		Recording_Notify(&fileCompleted);
+		Recording_Notify(&state);
 		HAL_Delay(2);
 		// While its not recording, check for the start transmission
 		while(!isRecording)
@@ -289,15 +304,18 @@ int main(void)
 		status = HAL_TIMEOUT;
 		if(readChar[0] == 's' && readChar[1] == 't' && readChar[2] == 'a' && readChar[3] == 'r' && readChar[4] == 't')
 		{
-		// once the "start" string has been read, we now that we are recording.
+		// Once the "start" string has been read, get ready to store bytes in buffer array.
 		isRecording = 1;
 		}
  		}
-		// Recording
-			
-		fileCompleted = 1;
+		
+		/*
+		 * STATE = 1 -- RECIEVING AUDIO DATA FROM DISCOVERY BOARD AND SENDING AUDIO DATA TO ANDROID DEVICE
+		 */
+		
+		state = 1;
 		HCI_Process();	
-		Recording_Notify(&fileCompleted);
+		Recording_Notify(&state);
 		HAL_Delay(2);
 		
 		// We need to transfer all the audio file now 
@@ -313,28 +331,26 @@ int main(void)
 
 		HAL_Delay(5);
 		}
-		//File recorded
-
+		
+		/*
+		 * STATE = 2 -- FILE HAS BEEN RECORDING AND NUCLEO IS NOT READY TO RECIEVE ANOTHER AUDIO FILE
+		 */
+		
+		// Reset parameters 
 		isRecording = 0;
 		readChar[0] = 0;
 		readChar[1] = 0;
 		readChar[2] = 0;
 		readChar[3] = 0;
 		readChar[4] = 0;
-		fileCompleted = 2;
+		state = 2;
 		HCI_Process();	
-		Recording_Notify(&fileCompleted);
+		Recording_Notify(&state);
 		HAL_Delay(2);
+		
+		// Delay for 2.5 seconds before restarting process.
 		HAL_Delay(2500);
-  }
 }
-/**
- * @brief  Process user input (i.e. pressing the USER button on Nucleo board)
- *         and send the updated acceleration data to the remote client.
- *
- * @param  AxesRaw_t* p_axes
- * @retval None
- */
 void User_Process(AxesRaw_t* p_axes)
 {
   if(set_connectable){
@@ -361,7 +377,12 @@ void User_Process(AxesRaw_t* p_axes)
   }
 }
 
-// UART Init
+/**
+ * @brief  UART initialization function.
+ *
+ * @param  None
+ * @retval None
+ */
 void UART_Init(void)
 {
 	__HAL_RCC_USART6_CLK_ENABLE();
@@ -378,7 +399,12 @@ void UART_Init(void)
 	HAL_UART_Init(&huart6);
 }
 
-// UART GPIOs Init Rx = Tx =
+/**
+ * @brief  UART GPIOs initialization function.
+ *
+ * @param  None
+ * @retval None
+ */
 void UART_GPIO_Init(void)
 {
   __HAL_RCC_GPIOA_CLK_ENABLE();
@@ -387,7 +413,8 @@ void UART_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
   
   rxGPIO.Pin        = GPIO_PIN_12;
-  txGPIO.Pin       = GPIO_PIN_11;
+  txGPIO.Pin       = GPIO_PIN_11;  // Transmit GPIO has been initialize, 
+																	//  which allows us to transmit from the Nucleo, but it is not used.
   
   rxGPIO.Mode       = GPIO_MODE_AF_PP;
   txGPIO.Mode      = GPIO_MODE_AF_PP;
@@ -405,15 +432,6 @@ void UART_GPIO_Init(void)
   HAL_GPIO_Init(GPIOA, &txGPIO);
 }
 
-
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
-	
-}
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-
-	
-}
 
 
 /**

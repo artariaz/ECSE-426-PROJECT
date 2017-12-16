@@ -149,7 +149,7 @@ const int BLE_CHAR_SIZE = 40;
  /**
   * @brief  Send a notification for a change in audio data detection.
   *
-  * @param  None
+  * @param  uint8_t* data
   * @retval tBleStatus Status
   */
  tBleStatus Audio_Data_Notify(uint8_t* data){
@@ -164,9 +164,9 @@ const int BLE_CHAR_SIZE = 40;
      return BLE_STATUS_SUCCESS;
  }
  /**
-  * @brief  Send a notification for a change in audio data detection.
+  * @brief  Send a notification for a change in nucleo state detection.
   *
-  * @param  None
+  * @param  uint8_t* data
   * @retval tBleStatus Status
   */
  tBleStatus Recording_Notify(uint8_t* data){
