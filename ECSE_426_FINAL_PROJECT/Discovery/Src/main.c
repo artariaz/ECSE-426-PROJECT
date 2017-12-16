@@ -43,74 +43,24 @@
 #include "usart.h"
 #include "gpio.h"
 
-/* USER CODE BEGIN Includes */
-#include "arm_math.h"
-/* USER CODE END Includes */
-
 /* Private variables ---------------------------------------------------------*/
-
-/* USER CODE BEGIN PV */
-/* Private variables ---------------------------------------------------------*/
-const int BUFFER_SIZE = 24000;
+const int BUFFER_SIZE = 32000;
 const int SEND_BUF_SIZE = 40;
 const int REC_TIME = 3; //s
-
-const int order = 2;
-const int filterWindowSize = 3;
-
-//float bufferA[BUFFER_SIZE];
-//float bufferB[BUFFER_SIZE];
-//float filteredA[BUFFER_SIZE];
-//float filteredB[BUFFER_SIZE];
-
 uint8_t sendBuffer[SEND_BUF_SIZE];
 uint8_t bufferA[BUFFER_SIZE];
 uint8_t adcInterruptFlag;
-struct FIR_coeff{
-		float coefficent[order * 2 + 1];
-};
-
-/* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-
-/* USER CODE BEGIN PFP */
-/* Private function prototypes -----------------------------------------------*/
-int IIR_CMSIS(float* InputArray, float* OutputArray, struct FIR_coeff* coeff, int Length);
 void PWR_StandbyMode(void);
-/* USER CODE END PFP */
 
-/* USER CODE BEGIN 0 */
-/* USER CODE END 0 */
 
 int main(void)
 {
-
-  /* USER CODE BEGIN 1 */
-//	struct FIR_coeff coeff;	
-//	coeff.coefficent[0] = 0.26404913056292794;
-//	coeff.coefficent[1] = 0.5280982611258559;
-//	coeff.coefficent[2] = 0.26404913056292794;
-//	coeff.coefficent[3] = -0.11782701552717954;
-//	coeff.coefficent[4] = 0.17402353777889132;	
-  /* USER CODE END 1 */
-
-  /* MCU Configuration----------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
-
   /* Configure the system clock */
   SystemClock_Config();
-
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
@@ -118,186 +68,86 @@ int main(void)
   MX_TIM2_Init();
   MX_USART3_UART_Init();
 
-  /* USER CODE BEGIN 2 */
-
-	//For displaying the digits
-	//Step(1): Start the Timer as interrupt
+	//Start the Timer as interrupt
 	HAL_TIM_Base_Start_IT(&htim2);
 
 	uint8_t adcVal;
 	int ind;
-	int index;
 
 	//Initialize the buffer size
-	for(int i = 0; i < BUFFER_SIZE; i++){
+	for(int i = 0; i < BUFFER_SIZE; i++)
+	{
 		bufferA[i] = 0;
 	}
-	for(int i = 0; i < SEND_BUF_SIZE; i++){
+	for(int i = 0; i < SEND_BUF_SIZE; i++)
+	{
 		sendBuffer[i] = 0;
 	}
-
-//	for(int i = 0; i < BUFFER_SIZE; i++){
-//		filteredA[i] = 0;
-//	}
-//	for(int i = 0; i < BUFFER_SIZE; i++){
-//		filteredB[i] = 0;
-//	}
 	
-	//To confirm that the sytem began working
+	// Turn blue led on to check system started working 
 	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_SET); //Blue LED
-	
-  /* USER CODE END 2 */
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-	//uint8_t start[5] = {0x73,0x74,0x61,0x72,0x74};
-	//HAL_UART_Transmit(&huart3, &start[0], 5, 200);
   while (1)
   {
-  /* USER CODE END WHILE */
-
-  /* USER CODE BEGIN 3 */
-		
-		
-	if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0)){
-		
-		uint8_t start[5] = {0x73,0x74,0x61,0x72,0x74};
-		HAL_UART_Transmit(&huart3, &start[0], 5, 2000);
-		HAL_StatusTypeDef status = HAL_TIMEOUT;
-		
-		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET); //Red LED
-
-		HAL_Delay(1000);
-
-		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_RESET);	//Red LED
-		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_SET); 		//Orange LED
+		// start the program if the blue button is pressed
+		if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0))
+		{
+			// send Start signal to nucleo board
+			uint8_t start[5] = {0x73,0x74,0x61,0x72,0x74};
+			HAL_UART_Transmit(&huart3, &start[0], 5, 2000);
+			HAL_StatusTypeDef status = HAL_TIMEOUT;
 			
-		HAL_Delay(1000);	
-	
-  	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_RESET);	//Orange LED
-		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET); 		//Green LED
-		
-		HAL_ADC_Start(&hadc2);
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET); //Red LED
+			HAL_Delay(1000);
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_RESET);	//Red LED
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_SET); 		//Orange LED
+			HAL_Delay(1000);	
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_RESET);	//Orange LED
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET); 		//Green LED
+			
+			// start adc
+			HAL_ADC_Start(&hadc2);
 
-			ind = 0;	
-			while(ind < BUFFER_SIZE){	
-				
-				while(adcInterruptFlag){
+			ind = 0;
+			// fill the buffer until it's full
+			while(ind < BUFFER_SIZE) 
+			{	
+				// store the adc value when interrupt happens
+				while(adcInterruptFlag) 
+				{
 					adcInterruptFlag = 0;
-					
 					adcVal = HAL_ADC_GetValue(&hadc2);
 					bufferA[ind] = adcVal;
 					ind++;
 				}
-
 			}
+			// indicate the transmission has started
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET); 	//Green LED
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET);	//Red LED
 			
-		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET); 		//Green LED
-//		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_SET); 		//Orange LED			
-//		//FILTERING	
-//			
-//		for(int i = 0; i < BUFFER_SIZE; i++){
-//			filterIn[i] = (float)bufferA[i];
-//		}
-//					
-//		IIR_CMSIS(filterIn, filterOut, &coeff, BUFFER_SIZE);
-//		
-//		for(int i = 0; i < BUFFER_SIZE; i++){
-//			bufferA[i] = (uint8_t)filterOut[i];
-//		}
-//			
-//		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_RESET); 		//Orange LED			
-		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET);	//Red LED
-			
-		for(int k=0;k<BUFFER_SIZE; k+=SEND_BUF_SIZE)
-		{
-			for(int j=0; j<SEND_BUF_SIZE; j++){
-				sendBuffer[j] = bufferA[k+j];
-			}
-			
-			while(status != HAL_OK){
-				status = HAL_UART_Transmit(&huart3, &sendBuffer[0], SEND_BUF_SIZE, 2000);
-			}
-			HAL_Delay(8);
-
-			status = HAL_TIMEOUT;
-		}	
-					
-		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_RESET); 		//Red LED
-		
-		HAL_ADC_Stop(&hadc2);
-
-/*
-			for(int i=0;i<REC_TIME*3;i++){
-				
-				for(int i = 0; i < BUFFER_SIZE; i++){
-					adcVal = HAL_ADC_GetValue(&hadc2);
-					bufferA[i] = adcVal;
-					//TODO SEND BY UART
-
-//					if (adcVal > 0){
-//						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_SET);
-//					}
-//					if (adcVal > 100){
-//						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET);
-//					}
-//					if (adcVal > 200){
-//						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_SET);
-//					}
-//					if (adcVal < 1){
-//						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_RESET);
-//					}
-//					if (adcVal < 101){
-//						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_RESET);
-//					}
-//					if (adcVal < 201){
-//						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_RESET);
-//					}
-
+			// partition the buffer by SEND_BUF_SIZE
+			for(int k=0; k<BUFFER_SIZE; k+=SEND_BUF_SIZE)
+			{
+				for(int j=0; j<SEND_BUF_SIZE; j++)
+				{
+					sendBuffer[j] = bufferA[k+j];
 				}
-				for(int i = 0; i < BUFFER_SIZE; i++){
-					adcVal = HAL_ADC_GetValue(&hadc2);
-					bufferB[i] = adcVal;
-					//TODO SEND BY UART
-//					if (adcVal > 0){
-//						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_SET);
-//					}
-//					if (adcVal > 100){
-//						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET);
-//					}
-//					if (adcVal > 200){
-//						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_SET);
-//					}
-//					if (adcVal < 1){
-//						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_RESET);
-//					}
-//					if (adcVal < 101){
-//						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_RESET);
-//					}
-//					if (adcVal < 201){
-//						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_RESET);
-//					}
-				}	
-			}
-		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET); 		//Green LED
+				// While the transmit is not complete
+				while(status != HAL_OK)
+				{
+					status = HAL_UART_Transmit(&huart3, &sendBuffer[0], SEND_BUF_SIZE, 2000);
+				}
+				HAL_Delay(8);
+				status = HAL_TIMEOUT;
+			}	
+			// indicate the transmission is done			
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_RESET); 		//Red LED
 			
-		if(bufferA[1] == bufferA[15]){
-			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_SET);
+			HAL_ADC_Stop(&hadc2);
+			// Task is done, go to power saving mode
+			PWR_StandbyMode();
 		}
-		if(bufferA[7] == bufferB[2]){
-			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET);
-		}
-		if(bufferB[9] == bufferB[13]){
-			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_SET);
-		}
-*/			
-		PWR_StandbyMode();
-		}
-		
-
 	}
-  /* USER CODE END 3 */
-
 }
 
 /** System Clock Configuration
@@ -357,22 +207,12 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-//int IIR_CMSIS(float* InputArray, float* OutputArray, struct FIR_coeff* coeff, int Length){
-//	
-//	//Initialize the variables required for the arm biquad filter
-//	arm_biquad_casd_df1_inst_f32 S;
-//	float stateArray[4] = {0,0,0,0};
-//	S.numStages = 1;
-//	S.pCoeffs = coeff ->coefficent;
-//	S.pState = stateArray;
-//	
-//	//Call arm biquad filter
-//	arm_biquad_cascade_df1_f32(&S,InputArray,OutputArray,Length);
-//	
-//	return 0;
-//}
-
-// sleep mode
+/**
+  * @brief  When the function is called, the board goes to standby mode to 
+						save power consumption. Blue button is used to wake up. 
+  * @param  None
+  * @retval None
+  */
 void PWR_StandbyMode(void)
 {
   __HAL_RCC_PWR_CLK_ENABLE();

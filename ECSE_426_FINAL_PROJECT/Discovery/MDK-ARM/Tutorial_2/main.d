@@ -36,7 +36,3 @@ tutorial_2\main.o: ../Inc/adc.h
 tutorial_2\main.o: ../Inc/tim.h
 tutorial_2\main.o: ../Inc/usart.h
 tutorial_2\main.o: ../Inc/gpio.h
-tutorial_2\main.o: ../Drivers/CMSIS/Include/arm_math.h
-tutorial_2\main.o: ../Drivers/CMSIS/Include/core_cm4.h
-tutorial_2\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
-tutorial_2\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
